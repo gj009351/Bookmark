@@ -1,4 +1,4 @@
-package com.duke.bookmark;
+package com.duke.bookmark.service;
 
 import cn.jpush.android.service.JCommonService;
 
