@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Bookmark</string>
     <string name="action_settings">Settings</string>
+    <string name="update">UPDATE</string>
+    <string name="cancel">CANCEL</string>
+    <string name="error_internet">Internet Error</string>
+    <string name="install_app_tips">安装应用需要打开安装未知来源应用权限，请去设置中开启权限</string>
+    <string name="sure">Sure</string>
 </resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">便签</string>
+    <string name="action_settings">设置</string>
+    <string name="update">更新</string>
+    <string name="cancel">取消</string>
+    <string name="error_internet">网络错误</string>
+    <string name="install_app_tips">安装应用需要打开安装未知来源应用权限，请去设置中开启权限</string>
+    <string name="sure">确认</string>
+</resources>

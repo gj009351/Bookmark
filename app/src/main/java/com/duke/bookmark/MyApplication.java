@@ -2,6 +2,9 @@ package com.duke.bookmark;
 
 import android.app.Application;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import cn.jpush.android.api.JPushInterface;
 
 public class MyApplication extends Application {

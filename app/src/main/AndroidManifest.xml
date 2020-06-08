@@ -183,6 +183,26 @@
             </intent-filter>
         </receiver>
 
+
+        <receiver
+            android:name="com.duke.bookmark.receiver.TalkReceiver"
+            android:enabled="true"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="cn.jpush.android.intent.REGISTRATION" /> <!--Required  用户注册SDK的intent-->
+                <action android:name="cn.jpush.android.intent.MESSAGE_RECEIVED" /> <!--Required  用户接收SDK消息的intent-->
+                <action android:name="cn.jpush.android.intent.NOTIFICATION_RECEIVED" /> <!--Required  用户接收SDK通知栏信息的intent-->
+                <action android:name="cn.jpush.android.intent.NOTIFICATION_OPENED" /> <!--Required  用户打开自定义通知栏的intent-->
+                <action android:name="cn.jpush.android.intent.CONNECTION" /><!-- 接收网络变化 连接/断开 since 1.6.3 -->
+                <action android:name="cn.jpush.android.intent.RECEIVE_MESSAGE" />
+                <category android:name="com.duke.bookmark" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="cn.jpush.android.intent.RECEIVE_MESSAGE" />
+                <category android:name="com.duke.bookmark" />
+            </intent-filter>
+        </receiver>
+
         <!-- 3.5.0新增，用于定时展示功能 -->
         <receiver android:name="cn.jpush.android.service.SchedulerReceiver" android:exported="false"/>
 
