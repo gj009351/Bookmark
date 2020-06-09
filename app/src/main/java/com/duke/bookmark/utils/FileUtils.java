@@ -19,6 +19,7 @@ import java.io.InputStream;
 public class FileUtils {
 
     private static final String PACKAGE_PHOTO = "bookmark/photos/";
+    private static final String PACKAGE_ROOT = "/bookmark";
 
     public static boolean copyFile(File srcFile, File destFile) {
         boolean flag = false;
@@ -152,10 +153,15 @@ public class FileUtils {
     }
 
     public static String getRootFilePath(Context context) {
+        try {
+            return Environment.getExternalStorageDirectory().getPath()  + "/" + PACKAGE_ROOT;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         if (hasSDCard()) {
-            return Environment.getDataDirectory().getAbsolutePath() + "/";// filePath:/sdcard/
+            return Environment.getDataDirectory().getAbsolutePath() + "/" + PACKAGE_ROOT;// filePath:/sdcard/
         } else {
-            return context.getFilesDir().toString() + File.separator;
+            return context.getFilesDir().toString() +  "/" + PACKAGE_ROOT;
         }
     }
 
