@@ -71,7 +71,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 //        if (file.exists()) {
 //
 //        }
-        SimpleDialog.show(this, response.getUpdateTitle(), response.getUpdateMessage()
+        SimpleDialog.init(this, response.getUpdateTitle(), response.getUpdateMessage()
                 , new SimpleDialog.OnClickListener() {
                     @Override
                     public void onConfirm() {
@@ -82,20 +82,24 @@ public abstract class BaseActivity extends AppCompatActivity {
                                 LogUtils.i("8.0手机已经拥有安装未知来源应用的权限，直接安装！");
                                 UpdateVersionProgressDialog.show(BaseActivity.this, response.getDownloadUrl());
                             } else {
-                                SimpleDialog.show(BaseActivity.this, "", getString(R.string.install_app_tips), new SimpleDialog.OnClickListener() {
+                                SimpleDialog.init(BaseActivity.this, "", getString(R.string.install_app_tips), new SimpleDialog.OnClickListener() {
                                     @Override
                                     public void onConfirm() {
                                         Uri packageUri = Uri.parse("package:"+ getPackageName());
                                         Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,packageUri);
                                         startActivityForResult(intent,10086);
                                     }
-                                }).setConfirmText(getString(R.string.sure));
+                                })
+                                        .setConfirmText(getString(R.string.sure))
+                                        .show();
                             }
                         } else {
                             UpdateVersionProgressDialog.show(BaseActivity.this, response.getDownloadUrl());
                         }
                     }
-                });
+                })
+                .showCancel("1".equals(response.getForceUpdate()))
+                .show();
     }
 
     @Override

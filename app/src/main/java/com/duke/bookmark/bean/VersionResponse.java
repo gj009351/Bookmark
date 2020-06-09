@@ -8,6 +8,7 @@ public class VersionResponse extends BaseModel {
     private String updateTitle;
     private String updateMessage;
     private String downloadUrl;
+    private String forceUpdate;//1强制更新，不显示cancel
 
     public int getVersionCode() {
         return versionCode;
@@ -39,5 +40,13 @@ public class VersionResponse extends BaseModel {
 
     public void setUpdateTitle(String updateTitle) {
         this.updateTitle = updateTitle;
+    }
+
+    public String getForceUpdate() {
+        return forceUpdate;
+    }
+
+    public void setForceUpdate(String forceUpdate) {
+        this.forceUpdate = forceUpdate;
     }
 }

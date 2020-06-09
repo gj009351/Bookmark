@@ -1,8 +1,12 @@
 package com.duke.bookmark.dialog;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,12 +25,27 @@ public class SimpleDialog extends Dialog {
     }
 
     public SimpleDialog(Context context, String title, String content, OnClickListener listener) {
-        super(context);
-        init(title, content, listener);
+        super(context, R.style.dialog_style);
+        initView(context, title, content, listener);
     }
 
-    private void init(String titleText, String contentText, OnClickListener listener) {
+    private void initView(Context context, String titleText, String contentText, OnClickListener listener) {
         setContentView(R.layout.dialog_update_version);
+
+        if (context instanceof Activity && !((Activity) context).isFinishing()) {
+            Window window = getWindow();
+            if (window != null) {
+                WindowManager.LayoutParams params = window.getAttributes();
+                if (params != null) {
+                    params.gravity = Gravity.CENTER;
+                    window.setAttributes(params);
+                }
+            }
+        }
+        setCanceledOnTouchOutside(true);
+        setCancelable(true);
+
+
         title = findViewById(R.id.title);
         title.setText(titleText);
         content = findViewById(R.id.content);
@@ -48,6 +67,13 @@ public class SimpleDialog extends Dialog {
                 dismiss();
             }
         });
+    }
+
+    public SimpleDialog showCancel(boolean show) {
+        if (cancel != null) {
+            cancel.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        return this;
     }
 
     public SimpleDialog setConfirmText(String confirmText) {

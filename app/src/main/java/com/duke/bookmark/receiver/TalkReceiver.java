@@ -16,6 +16,7 @@ import org.greenrobot.eventbus.EventBus;
 import cn.jpush.android.api.JPushInterface;
 
 public class TalkReceiver extends BroadcastReceiver {
+
     private static final String TAG = "TalkReceiver:";
     /*{
         "versionCode": 2,
