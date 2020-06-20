@@ -222,7 +222,9 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
 
                     @Override
                     public void onProgress(long bytesDownloaded, long totalBytes) {
-                        LogUtils.e("downloadurl:onProgress:" + bytesDownloaded + ", totalBytes" + totalBytes + ", progress:" + (int) (bytesDownloaded * 100 / totalBytes));
+                        LogUtils.e("downloadurl:onProgress:" + bytesDownloaded
+                                + ", totalDownloadBytes" + totalDownloadBytes + ", progress:"
+                                + (int) (bytesDownloaded * 100 / totalDownloadBytes));
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
