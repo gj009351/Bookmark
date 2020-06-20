@@ -22,7 +22,7 @@ public class TalkReceiver extends BroadcastReceiver {
         "versionCode": 2,
             "updateTitle": "有新的更新",
             "updateMessage": "测试更新内容",
-            "downloadUrl": "https://github.com/gj009351/Bookmark/blob/master/note.png"
+            "downloadUrl": "https://github.com/gj009351/Bookmark/blob/master/app/release/app-release.apk"
     }
 */
 
@@ -64,6 +64,7 @@ public class TalkReceiver extends BroadcastReceiver {
     private void processCustomMessage(Context context, Bundle bundle) {
         String title = bundle.getString(JPushInterface.EXTRA_TITLE);
         String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
+        LogUtils.d(TAG + "process message:" + title + ", " + message);
         if (TextUtils.isEmpty(message)) {
             LogUtils.w(TAG + "Unexpected: empty title (friend). Give up");
             return;

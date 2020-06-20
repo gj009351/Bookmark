@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.text.TextUtils;
 
@@ -13,15 +15,17 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.androidnetworking.error.ANError;
 import com.duke.bookmark.BuildConfig;
 import com.duke.bookmark.R;
-import com.duke.bookmark.activity.MainActivity;
 import com.duke.bookmark.bean.VersionResponse;
 import com.duke.bookmark.constants.Event;
 import com.duke.bookmark.dialog.SimpleDialog;
 import com.duke.bookmark.dialog.UpdateVersionProgressDialog;
+import com.duke.bookmark.listener.ProgressResponseListener;
 import com.duke.bookmark.utils.AppUtils;
 import com.duke.bookmark.utils.FileUtils;
+import com.duke.bookmark.utils.HttpUtils;
 import com.duke.bookmark.utils.JsonUtils;
 import com.duke.bookmark.utils.LogUtils;
 import com.duke.bookmark.utils.MD5Utils;
@@ -31,6 +35,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import cn.jpush.android.api.JPushInterface;
@@ -41,11 +46,35 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
 
     private static final int RC_PERMISSIONS = 1002;
     private VersionResponse mVersionResponse;
+    private UpdateVersionProgressDialog mUpdateDialog;
+    private MyHandler mHandler;
+
+    public static final class MyHandler extends Handler {
+
+        private WeakReference<BaseActivity> weakReference;
+
+        MyHandler(BaseActivity activity) {
+            weakReference = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            if (weakReference != null && weakReference.get() != null) {
+                weakReference.get().onHandleMessage(msg);
+            }
+        }
+    }
+
+    public void onHandleMessage(Message msg) {
+
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
+        mHandler = new MyHandler(this);
     }
 
     @Override
@@ -93,11 +122,13 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onReceiveEvent(BaseEvent event) {
         Bundle bundle = event.getBundle();
+        LogUtils.d("onReceive message event:" + event.getCode() + ", " + event.getBundle());
         if (event.getCode() == Event.CODE_UPDATE_VERSION) {
             if (bundle != null) {
                 String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
                 if (!TextUtils.isEmpty(message)) {
                     VersionResponse response = JsonUtils.fromJson(message, VersionResponse.class);
+                    LogUtils.d("receive update message:" + message + ", response:" + response);
                     if (response.getVersionCode() > BuildConfig.VERSION_CODE) {
                         showUpdateDialog(response);
                     }
@@ -114,6 +145,7 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
 //        if (file.exists()) {
 //
 //        }
+        LogUtils.d("show update dialog");
         SimpleDialog.init(this, response.getUpdateTitle(), response.getUpdateMessage()
                 , new SimpleDialog.OnClickListener() {
                     @Override
@@ -123,8 +155,10 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
                             boolean haveInstallPermission = getPackageManager().canRequestPackageInstalls();
                             if (haveInstallPermission) {
                                 LogUtils.i("8.0手机已经拥有安装未知来源应用的权限，直接安装！");
-                                UpdateVersionProgressDialog.show(BaseActivity.this, response.getDownloadUrl());
+                                LogUtils.d("show download progress dialog");
+                                startUpdate(response.getDownloadUrl(), response.getTotalBytes());
                             } else {
+                                LogUtils.d("request install permissions");
                                 SimpleDialog.init(BaseActivity.this, "", getString(R.string.install_app_tips), new SimpleDialog.OnClickListener() {
                                     @Override
                                     public void onConfirm() {
@@ -137,12 +171,70 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
                                         .show();
                             }
                         } else {
-                            UpdateVersionProgressDialog.show(BaseActivity.this, response.getDownloadUrl());
+                            LogUtils.d("show download progress dialog");
+                            startUpdate(response.getDownloadUrl(), response.getTotalBytes());
                         }
                     }
                 })
-                .showCancel("1".equals(response.getForceUpdate()))
+                .showCancel(!"1".equals(response.getForceUpdate()))
                 .show();
+    }
+
+    private void startUpdate(String downloadUrl, long totalBytes) {
+        LogUtils.d("startupdaate:" + downloadUrl);
+        mUpdateDialog = UpdateVersionProgressDialog.show(BaseActivity.this);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                downloadApk(downloadUrl, totalBytes);
+            }
+        }, 1000);
+    }
+
+    private void downloadApk(String downloadUrl, long totalDownloadBytes) {
+        LogUtils.e("downloadurl: startdownload:" + downloadUrl);
+        String fileName = MD5Utils.getMD5(downloadUrl) + FileUtils.getFileTypeName(downloadUrl);
+        HttpUtils.download(this
+                , downloadUrl
+                , FileUtils.getRootFilePath(this)
+                , fileName, new ProgressResponseListener() {
+                    @Override
+                    public void onDownloadComplete(String file) {
+                        LogUtils.e("downloadurl:onDownloadComplete:" + file);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (isSafe()) {
+                                    if (mUpdateDialog != null) {
+                                        mUpdateDialog.dismiss();
+                                    }
+                                    //install
+                                    AppUtils.installApk(BaseActivity.this, file);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+                        LogUtils.e("downloadurl:onError:" + anError);
+                    }
+
+                    @Override
+                    public void onProgress(long bytesDownloaded, long totalBytes) {
+                        LogUtils.e("downloadurl:onProgress:" + bytesDownloaded + ", totalBytes" + totalBytes + ", progress:" + (int) (bytesDownloaded * 100 / totalBytes));
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mUpdateDialog.setProgress((int) (bytesDownloaded * 100 / totalDownloadBytes));
+                            }
+                        });
+                    }
+                });
+    }
+
+    private boolean isSafe() {
+        return !isFinishing() && !isDestroyed();
     }
 
     @Override

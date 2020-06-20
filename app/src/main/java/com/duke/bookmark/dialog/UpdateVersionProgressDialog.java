@@ -23,12 +23,12 @@ public class UpdateVersionProgressDialog extends Dialog {
 
     private NumberProgressBar progressBar;
 
-    public UpdateVersionProgressDialog(@NonNull Context context, String downloadUrl) {
+    public UpdateVersionProgressDialog(@NonNull Context context) {
         super(context, R.style.dialog_style);
-        init(context, downloadUrl);
+        init(context);
     }
 
-    private void init(Context context, String downloadUrl) {
+    private void init(Context context) {
         setContentView(R.layout.dialog_update_version_progress);
 
         if (context instanceof Activity && !((Activity) context).isFinishing()) {
@@ -47,34 +47,15 @@ public class UpdateVersionProgressDialog extends Dialog {
         progressBar = findViewById(R.id.number_progress_bar);
         progressBar.setMax(100);
 
-        String fileName = MD5Utils.getMD5(downloadUrl) + FileUtils.getFileTypeName(downloadUrl);
-        HttpUtils.download(context
-                , downloadUrl
-                , FileUtils.getRootFilePath(context)
-                , fileName, new ProgressResponseListener() {
-                    @Override
-                    public void onDownloadComplete(String file) {
-                        LogUtils.e("downloadurl:onDownloadComplete:" + file);
-                        dismiss();
-                        //install
-                        AppUtils.installApk(context, file);
-                    }
-
-                    @Override
-                    public void onError(ANError anError) {
-                        LogUtils.e("downloadurl:onError:" + anError);
-                    }
-
-                    @Override
-                    public void onProgress(long bytesDownloaded, long totalBytes) {
-                        LogUtils.e("downloadurl:onProgress:" + bytesDownloaded + ", totalBytes" + totalBytes + ", progress:" + (int) (bytesDownloaded * 100 / totalBytes));
-                        progressBar.setProgress((int) (bytesDownloaded * 100 / totalBytes));
-                    }
-                });
     }
 
-    public static void show(Context context, String downloadUrl) {
-        UpdateVersionProgressDialog dialog = new UpdateVersionProgressDialog(context, downloadUrl);
+    public void setProgress(int progress) {
+        progressBar.setProgress(progress);
+    }
+
+    public static UpdateVersionProgressDialog show(Context context) {
+        UpdateVersionProgressDialog dialog = new UpdateVersionProgressDialog(context);
         dialog.show();
+        return dialog;
     }
 }
